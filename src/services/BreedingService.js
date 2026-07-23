@@ -2,12 +2,11 @@ import { randomUUID } from 'node:crypto';
 import { breedCreature } from './CreatureFactory.js';
 
 export class BreedingService {
-  constructor({ database, config, userService, questService, imageService }) {
+  constructor({ database, config, userService, questService }) {
     this.database = database;
     this.config = config;
     this.users = userService;
     this.quests = questService;
-    this.images = imageService;
     this.hatchLocks = new Set();
   }
 
@@ -98,19 +97,8 @@ export class BreedingService {
       const creature = breedCreature(...prepared.parents);
       creature.ownerId = userId;
       creature.caughtAt = new Date().toISOString();
-      try {
-        const generated = await this.images.generate(creature);
-        creature.image = generated.url ?? null;
-        creature.imagePrompt = generated.prompt;
-        creature.pendingAttachment = generated.attachment ?? null;
-        creature.pendingAttachmentUrl = generated.attachmentUrl ?? null;
-      } catch (error) {
-        console.error(`[images] Hatch image failed for ${creature.species}:`, error.message);
-      }
-      const persistedCreature = { ...creature };
-      delete persistedCreature.pendingAttachment;
-      delete persistedCreature.pendingAttachmentUrl;
-      await this.database.creatures.set(creature.id, persistedCreature, { flush: true });
+      creature.imageAsset = `hathors/${creature.species.toLowerCase()}.png`;
+      await this.database.creatures.set(creature.id, creature, { flush: true });
       await this.users.update(userId, (user) => {
         if (!user.eggs.some((entry) => entry.id === prepared.egg.id)) return;
         user.eggs = user.eggs.filter((entry) => entry.id !== prepared.egg.id);

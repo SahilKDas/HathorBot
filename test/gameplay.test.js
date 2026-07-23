@@ -5,7 +5,6 @@ import os from 'node:os';
 import path from 'node:path';
 import { Database } from '../src/database/Database.js';
 import { BreedingService } from '../src/services/BreedingService.js';
-import { ImageService } from '../src/services/ImageService.js';
 import { QuestService } from '../src/services/QuestService.js';
 import { SpawnService } from '../src/services/SpawnService.js';
 import { UserService } from '../src/services/UserService.js';
@@ -20,10 +19,10 @@ test('spawn, catch, breed, collect, and hatch work as one persisted flow', async
     daycare: { breedMs: 0, breedMessages: 1, hatchMs: 0, hatchMessages: 1 },
   };
   const users = new UserService(database);
-  const images = new ImageService({ provider: 'disabled', endpoint: '', timeoutMs: 1000 });
+  const assets = { creature: () => null, daycare: () => null };
   const quests = new QuestService(users);
-  const breeding = new BreedingService({ database, config, userService: users, questService: quests, imageService: images });
-  const spawns = new SpawnService({ database, config, imageService: images, userService: users, questService: quests });
+  const breeding = new BreedingService({ database, config, userService: users, questService: quests });
+  const spawns = new SpawnService({ database, config, assetService: assets, userService: users, questService: quests });
   const sent = [];
   const channel = { id: 'channel-1', guild: { id: 'guild-1' }, send: async (payload) => sent.push(payload) };
 

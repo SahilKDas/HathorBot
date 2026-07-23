@@ -8,6 +8,7 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "deploy": "node scripts/deploy-commands.js",
+    "assets:remove-bg": "node scripts/remove-backgrounds.js",
     "test": "node --test"
   },
   "engines": {

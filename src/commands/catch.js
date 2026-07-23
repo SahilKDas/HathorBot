@@ -25,7 +25,8 @@ export default {
         { name: 'Form', value: forms, inline: true },
         { name: 'ID', value: `\`${creature.id.slice(0, 8)}\``, inline: true },
       );
-    if (creature.image) embed.setThumbnail(creature.image);
-    return ctx.reply({ embeds: [embed] });
+    const asset = app.assets.creature(creature);
+    if (asset) embed.setThumbnail(asset.attachmentUrl);
+    return ctx.reply({ embeds: [embed], files: asset ? [asset.attachment] : [] });
   },
 };

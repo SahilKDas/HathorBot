@@ -34,17 +34,6 @@ export const config = Object.freeze({
     hatchMs: integer('EGG_HATCH_MINUTES', 30, 0) * 60 * 1000,
     hatchMessages: integer('EGG_HATCH_MESSAGES', 25, 1),
   },
-  image: {
-    provider: process.env.IMAGE_PROVIDER || 'disabled',
-    endpoint: process.env.IMAGE_API_URL || '',
-    apiKey: process.env.IMAGE_API_KEY || '',
-    responsePath: process.env.IMAGE_RESPONSE_PATH || 'data.0.url',
-    authHeader: process.env.IMAGE_AUTH_HEADER || 'Authorization',
-    authPrefix: process.env.IMAGE_AUTH_PREFIX ?? 'Bearer',
-    timeoutMs: integer('IMAGE_TIMEOUT_MS', 45_000, 1000),
-    width: 768,
-    height: 768,
-  },
 });
 
 if (config.spawn.maxMessages < config.spawn.minMessages) {

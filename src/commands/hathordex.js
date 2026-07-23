@@ -53,7 +53,12 @@ export default {
       page = ctx.integer('page') ?? 1;
     } else if (ctx.args.length) {
       const exactSpecies = findSpecies(ctx.args.join(' '));
-      if (exactSpecies) return ctx.reply({ embeds: [detailEmbed(exactSpecies)] });
+      if (exactSpecies) {
+        const asset = app.assets.creature(exactSpecies.name);
+        const embed = detailEmbed(exactSpecies);
+        if (asset) embed.setImage(asset.attachmentUrl);
+        return ctx.reply({ embeds: [embed], files: asset ? [asset.attachment] : [] });
+      }
 
       for (const argument of ctx.args) {
         if (/^\d+$/.test(argument)) page = Number.parseInt(argument, 10);
@@ -71,7 +76,10 @@ export default {
           ephemeral: true,
         });
       }
-      return ctx.reply({ embeds: [detailEmbed(species)] });
+      const asset = app.assets.creature(species.name);
+      const embed = detailEmbed(species);
+      if (asset) embed.setImage(asset.attachmentUrl);
+      return ctx.reply({ embeds: [embed], files: asset ? [asset.attachment] : [] });
     }
 
     const entries = FLAMINGOS.filter((species) => (!type || species.type === type) && (!rarity || species.rarity === rarity));

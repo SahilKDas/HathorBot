@@ -12,7 +12,8 @@ A modular Discord.js v14 collection RPG built around completely original flaming
 - Sortable, paginated collection box
 - Daycare pairs, time-or-message Egg production, time-or-message hatching, IV inheritance, and boosted mutation odds
 - Daily quests, Shrimp Coins, trainer XP/levels, and functional duels
-- AI images generated from a unique creature prompt and UUID-derived seed
+- One permanent, canonical transparent image per species; no image generation during gameplay
+- An original opaque Daycare environment used by the Daycare status command
 - Optimized local JSON storage with separate files, in-memory reads, serialized mutations, debounced writes, atomic replacement, and `.bak` recovery
 
 ## Requirements
@@ -55,28 +56,21 @@ The process also exposes `GET /` and `GET /health` on `PORT` (4010 by default) f
 
 The eight-character IDs shown by `/box` and `/daycare status` are accepted anywhere a creature or Egg ID is required.
 
-## Image providers
+## Static artwork pipeline
 
-The `url-template` provider makes an HTTP request to the URL in `IMAGE_API_URL`, downloads the returned image, and attaches it directly to the spawn embed. Every request includes a unique prompt and UUID-derived numeric seed:
+Gameplay never calls an image-generation service. Each species maps to one canonical file under `assets/hathors`, and every spawn, capture, hatch, and detailed Hathordex entry reuses that file. The Daycare status view uses the opaque `assets/daycare/background.png` environment.
 
-```env
-IMAGE_PROVIDER=url-template
-IMAGE_API_URL=https://image.example/generate/{prompt}?seed={seed}&width={width}&height={height}
-IMAGE_API_KEY=optional-provider-key
-```
-
-For Perchance or another service that exposes a JSON image-generation endpoint, switch to `json`. The wrapper POSTs `{ prompt, seed, width, height, n }`, optionally adds an API-key header, and reads the image URL from a configurable dotted path:
+Creature source renders are generated once into the ignored `.tmp/imagegen/source/hathors` directory. Background removal is a separate build-time operation using remove.bg:
 
 ```env
-IMAGE_PROVIDER=json
-IMAGE_API_URL=https://provider.example/v1/images/generations
-IMAGE_API_KEY=your-key-if-needed
-IMAGE_RESPONSE_PATH=data.0.url
-IMAGE_AUTH_HEADER=Authorization
-IMAGE_AUTH_PREFIX=Bearer
+REMOVE_BG_API_KEY=your-remove-bg-api-key
 ```
 
-The included `.env.example` shows Pollinations’ current authenticated GET endpoint. Its API key is sent server-side in the configured authorization header. Perchance’s public web generator is not treated as a stable unofficial API; if you have an approved Perchance endpoint, put it in the JSON configuration above. Set `IMAGE_PROVIDER=disabled` to run without images. Failed or timed-out image requests do not destroy the spawn; the creature remains catchable and the embed explains that its image is unavailable.
+```bash
+npm run assets:remove-bg
+```
+
+The command uploads only the 18 creature source renders and writes transparent PNGs to `assets/hathors`. It never uploads or modifies the Daycare background, and the API key is never used by the running Discord bot.
 
 ## JSON database and data safety
 
@@ -105,7 +99,7 @@ src/
 ├── events/          Discord event modules
 ├── handlers/        dynamic command and event loaders
 ├── models/          durable record schemas/defaults
-├── services/        spawning, images, breeding, quests, users, duels
+├── services/        spawning, static assets, breeding, quests, users, duels
 ├── structures/      shared command context adapter
 ├── utils/           random and text helpers
 ├── config.js

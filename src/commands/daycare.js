@@ -39,6 +39,7 @@ export default {
       const result = await app.breeding.hatch(ctx.userId, eggId);
       if (!result.ok) return ctx.reply({ content: result.reason, ephemeral: true });
       const creature = result.creature;
+      const asset = app.assets.creature(creature);
       const embed = new EmbedBuilder()
         .setColor(0xff8fc7)
         .setTitle(`🥚 ${creature.species} hatched!`)
@@ -49,9 +50,8 @@ export default {
           { name: 'Mutations', value: [creature.shiny && '✨ Shiny', creature.gigantamax && '🏔️ Gigantamax'].filter(Boolean).join(' · ') || 'None', inline: true },
           { name: 'ID', value: `\`${creature.id.slice(0, 8)}\``, inline: true },
         );
-      if (creature.pendingAttachmentUrl) embed.setImage(creature.pendingAttachmentUrl);
-      else if (creature.image) embed.setImage(creature.image);
-      return ctx.reply({ embeds: [embed], files: creature.pendingAttachment ? [creature.pendingAttachment] : [] });
+      if (asset) embed.setImage(asset.attachmentUrl);
+      return ctx.reply({ embeds: [embed], files: asset ? [asset.attachment] : [] });
     }
 
     const user = app.users.get(ctx.userId);
@@ -67,6 +67,8 @@ export default {
     }).join('\n') : 'No Eggs waiting.';
     const embed = new EmbedBuilder().setColor(0xff8fc7).setTitle('Flamingo Daycare')
       .addFields({ name: 'Breeding pair', value: pairText }, { name: `Eggs (${user.eggs.length})`, value: eggText });
-    return ctx.reply({ embeds: [embed] });
+    const daycareAsset = app.assets.daycare();
+    if (daycareAsset) embed.setImage(daycareAsset.attachmentUrl);
+    return ctx.reply({ embeds: [embed], files: daycareAsset ? [daycareAsset.attachment] : [] });
   },
 };

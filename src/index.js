@@ -6,8 +6,8 @@ import { Database } from './database/Database.js';
 import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
 import { BreedingService } from './services/BreedingService.js';
+import { AssetService } from './services/AssetService.js';
 import { DuelService } from './services/DuelService.js';
-import { ImageService } from './services/ImageService.js';
 import { startHealthServer, stopHealthServer } from './services/HealthServer.js';
 import { QuestService } from './services/QuestService.js';
 import { SpawnService } from './services/SpawnService.js';
@@ -26,12 +26,12 @@ if (!config.token) {
     partials: [Partials.Channel],
   });
   const users = new UserService(database);
-  const images = new ImageService(config.image);
+  const assets = new AssetService(path.join(path.resolve(currentDirectory, '..'), 'assets'));
   const quests = new QuestService(users);
-  const breeding = new BreedingService({ database, config, userService: users, questService: quests, imageService: images });
-  const spawns = new SpawnService({ database, config, imageService: images, userService: users, questService: quests });
+  const breeding = new BreedingService({ database, config, userService: users, questService: quests });
+  const spawns = new SpawnService({ database, config, assetService: assets, userService: users, questService: quests });
   const duels = new DuelService({ database, userService: users, questService: quests });
-  const app = { client, config, database, users, images, quests, breeding, spawns, duels };
+  const app = { client, config, database, users, assets, quests, breeding, spawns, duels };
 
   await loadCommands(client, path.join(currentDirectory, 'commands'), app);
   await loadEvents(client, path.join(currentDirectory, 'events'));

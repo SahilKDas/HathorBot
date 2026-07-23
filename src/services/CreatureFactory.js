@@ -49,7 +49,7 @@ function buildCreature(species, { ivs, shiny, gigantamax, level = 1, origin = 'w
     ivs: rolledIvs,
     ivPercentage: ivPercentage(rolledIvs),
     stats,
-    image: null,
+    imageAsset: `hathors/${species.name.toLowerCase()}.png`,
     origin,
     parents,
     caughtAt: null,
