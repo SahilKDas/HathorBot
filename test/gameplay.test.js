@@ -27,17 +27,17 @@ test('spawn, catch, breed, collect, and hatch work as one persisted flow', async
   const channel = { id: 'channel-1', guild: { id: 'guild-1' }, send: async (payload) => sent.push(payload) };
 
   const firstSpawn = await spawns.spawn(channel);
-  const firstCatch = await spawns.catch({ guildId: 'guild-1', channelId: 'channel-1', userId: 'user-1', guessedName: firstSpawn.creature.species });
+  const firstCatch = await spawns.catch({ guildId: 'guild-1', channelId: 'channel-1', userId: 'user-1', guessedName: firstSpawn.creature.species.toUpperCase() });
   const secondSpawn = await spawns.spawn(channel);
   const secondCatch = await spawns.catch({ guildId: 'guild-1', channelId: 'channel-1', userId: 'user-1', guessedName: secondSpawn.creature.species });
   assert.ok(firstCatch.ok && secondCatch.ok);
   assert.equal(sent.length, 2);
 
-  const placed = await breeding.place('user-1', firstCatch.creature.id.slice(0, 8), secondCatch.creature.id.slice(0, 8));
+  const placed = await breeding.place('user-1', firstCatch.creature.id.slice(0, 8).toUpperCase(), secondCatch.creature.id.slice(0, 8).toUpperCase());
   assert.ok(placed.ok);
   const collected = await breeding.collect('user-1');
   assert.ok(collected.ok);
-  const hatched = await breeding.hatch('user-1', collected.egg.id.slice(0, 8));
+  const hatched = await breeding.hatch('user-1', collected.egg.id.slice(0, 8).toUpperCase());
   assert.ok(hatched.ok);
   assert.equal(hatched.creature.parents.length, 2);
   assert.equal(users.get('user-1').inventory.length, 3);

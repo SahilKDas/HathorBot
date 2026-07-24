@@ -10,7 +10,7 @@ export default {
     )),
   aliases: ['daily'],
   async execute(ctx, app) {
-    const action = ctx.string('action', 0) ?? 'view';
+    const action = (ctx.string('action', 0) ?? 'view').toLowerCase();
     await app.quests.get(ctx.userId);
     if (action === 'claim') {
       const result = await app.quests.claim(ctx.userId);

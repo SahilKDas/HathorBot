@@ -12,7 +12,7 @@ export default {
     .addIntegerOption((option) => option.setName('page').setDescription('Page number').setMinValue(1)),
   aliases: ['flamingos', 'inventory'],
   async execute(ctx, app) {
-    const sort = ctx.string('sort', 0) ?? 'iv';
+    const sort = (ctx.string('sort', 0) ?? 'iv').toLowerCase();
     const page = Math.max(1, ctx.integer('page', 1) ?? 1);
     const user = app.users.get(ctx.userId);
     const creatures = user.inventory.map((id) => app.database.creatures.get(id)).filter(Boolean);

@@ -42,7 +42,7 @@ The process also exposes `GET /` and `GET /health` on `PORT` (4010 by default) f
 | Slash command | Prefix equivalent | Purpose |
 |---|---|---|
 | `/catch name` | `!catch name` | Catch the current wild Flamingo |
-| `/hathordex` | `!hathordex`, `!dex` | Browse species, filters, hints, and base stats |
+| `/hathordex` | `!hathordex`, `!h`, `!dex` | Browse species, filters, hints, and base stats |
 | `/box [sort] [page]` | `!box iv 1`, `!flamingos` | View the player’s flock |
 | `/daycare place first second` | `!daycare place id id` | Place two owned Flamingos in Daycare |
 | `/daycare status` | `!daycare status` | View pair and Egg progress |
@@ -55,6 +55,8 @@ The process also exposes `GET /` and `GET /health` on `PORT` (4010 by default) f
 | `/spawn-now` | `!spawn-now` | Force a test spawn (Manage Server) |
 
 The eight-character IDs shown by `/box` and `/daycare status` are accepted anywhere a creature or Egg ID is required.
+
+All prefix command names, aliases, species names, filters, actions, and hexadecimal IDs are case-insensitive. For example, `!H CoRaLuMe` and `!hathordex coralume` open the same entry.
 
 ## Static artwork pipeline
 

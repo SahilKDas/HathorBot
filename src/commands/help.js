@@ -8,7 +8,7 @@ export default {
       .setDescription(`Chat to attract wild Flamingos, identify them from their hint, and grow a one-of-a-kind flock. Slash commands and \`${p}\` prefix commands both work.`)
       .addFields(
         { name: 'Collecting', value: `\`/catch name\` · \`/box [sort] [page]\`\nPrefix: \`${p}catch\`, \`${p}flamingos\`` },
-        { name: 'Hathordex', value: '`/hathordex` · `/hathordex name:<species>` · `/hathordex type:<type>`' },
+        { name: 'Hathordex', value: '`/hathordex` · `/hathordex name:<species>` · `/hathordex type:<type>`\nPrefix: `!hathordex <species>` or `!h <species>`' },
         { name: 'Daycare', value: '`/daycare place` · `/daycare status` · `/daycare collect` · `/daycare hatch`' },
         { name: 'Progress', value: '`/quest` · `/profile` · `/duel @trainer`' },
         { name: 'Server setup', value: '`/spawn-channel add|remove|all|list` · `/spawn-now` (Manage Server)' },

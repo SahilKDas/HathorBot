@@ -39,7 +39,7 @@ export default {
     .addStringOption((option) => option.setName('rarity').setDescription('Filter by rarity')
       .addChoices(...rarityNames.map((rarity) => ({ name: rarity, value: rarity }))))
     .addIntegerOption((option) => option.setName('page').setDescription('Page number').setMinValue(1)),
-  aliases: ['dex', 'bestiary'],
+  aliases: ['h', 'dex', 'bestiary'],
   async execute(ctx, app) {
     let requestedName = null;
     let type = null;

@@ -21,7 +21,8 @@ export class BreedingService {
   }
 
   getCreatureOwnedBy(user, creatureId) {
-    const matches = user.inventory.filter((id) => id === creatureId || id.startsWith(creatureId));
+    const query = String(creatureId ?? '').toLowerCase();
+    const matches = user.inventory.filter((id) => id.toLowerCase() === query || id.toLowerCase().startsWith(query));
     if (matches.length !== 1) return null;
     const resolvedId = matches[0];
     if (!resolvedId) return null;
@@ -84,7 +85,8 @@ export class BreedingService {
     try {
       let prepared;
       await this.users.update(userId, (user) => {
-        const matchingEggs = user.eggs.filter((entry) => entry.id === eggId || entry.id.startsWith(eggId));
+        const query = String(eggId ?? '').toLowerCase();
+        const matchingEggs = user.eggs.filter((entry) => entry.id.toLowerCase() === query || entry.id.toLowerCase().startsWith(query));
         const egg = matchingEggs.length === 1 ? matchingEggs[0] : null;
         if (!egg) return void (prepared = { ok: false, reason: 'That Egg ID is missing or ambiguous.' });
         if (!this.isEggReady(egg)) return void (prepared = { ok: false, reason: 'That Egg is not ready to hatch.' });
