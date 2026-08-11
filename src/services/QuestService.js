@@ -15,8 +15,9 @@ function dayKey() {
 }
 
 export class QuestService {
-  constructor(userService) {
+  constructor({ userService, progressionService }) {
     this.users = userService;
+    this.progression = progressionService;
   }
 
   async get(userId) {
@@ -57,10 +58,13 @@ export class QuestService {
       } else {
         quest.claimed = true;
         user.shrimpCoins += quest.rewardCoins;
+        user.ascensionSigils += 1;
+        user.items.shrimp_treat = (user.items.shrimp_treat ?? 0) + 1;
         addXp(user, quest.rewardXp);
-        result = { ok: true, quest };
+        result = { ok: true, quest: structuredClone(quest), creatureXp: 125, sigils: 1 };
       }
     }, { flush: true });
+    if (result.ok) result.progression = await this.progression.awardTeam(userId, result.creatureXp);
     return result;
   }
 }

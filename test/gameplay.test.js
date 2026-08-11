@@ -5,9 +5,11 @@ import os from 'node:os';
 import path from 'node:path';
 import { Database } from '../src/database/Database.js';
 import { BreedingService } from '../src/services/BreedingService.js';
+import { CreatureProgressionService } from '../src/services/CreatureProgressionService.js';
 import { QuestService } from '../src/services/QuestService.js';
 import { SpawnService } from '../src/services/SpawnService.js';
 import { UserService } from '../src/services/UserService.js';
+import { WorldService } from '../src/services/WorldService.js';
 
 test('spawn, catch, breed, collect, and hatch work as one persisted flow', async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'flamingo-game-'));
@@ -19,10 +21,12 @@ test('spawn, catch, breed, collect, and hatch work as one persisted flow', async
     daycare: { breedMs: 0, breedMessages: 1, hatchMs: 0, hatchMessages: 1 },
   };
   const users = new UserService(database);
+  const progression = new CreatureProgressionService({ database, userService: users });
   const assets = { creature: () => null, daycare: () => null };
-  const quests = new QuestService(users);
-  const breeding = new BreedingService({ database, config, userService: users, questService: quests });
-  const spawns = new SpawnService({ database, config, assetService: assets, userService: users, questService: quests });
+  const quests = new QuestService({ userService: users, progressionService: progression });
+  const worlds = new WorldService({ database, config });
+  const breeding = new BreedingService({ database, config, userService: users, questService: quests, progressionService: progression });
+  const spawns = new SpawnService({ database, config, assetService: assets, userService: users, questService: quests, worldService: worlds });
   const sent = [];
   const channel = { id: 'channel-1', guild: { id: 'guild-1' }, send: async (payload) => sent.push(payload) };
 

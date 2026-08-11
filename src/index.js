@@ -7,11 +7,20 @@ import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
 import { BreedingService } from './services/BreedingService.js';
 import { AssetService } from './services/AssetService.js';
-import { DuelService } from './services/DuelService.js';
+import { AscensionService } from './services/AscensionService.js';
+import { AuditService } from './services/AuditService.js';
+import { BattleService } from './services/BattleService.js';
+import { CreatureProgressionService } from './services/CreatureProgressionService.js';
+import { EquipmentService } from './services/EquipmentService.js';
 import { startHealthServer, stopHealthServer } from './services/HealthServer.js';
+import { MarketplaceService } from './services/MarketplaceService.js';
 import { QuestService } from './services/QuestService.js';
 import { SpawnService } from './services/SpawnService.js';
+import { StoryService } from './services/StoryService.js';
+import { TeamService } from './services/TeamService.js';
+import { TradeService } from './services/TradeService.js';
 import { UserService } from './services/UserService.js';
+import { WorldService } from './services/WorldService.js';
 
 if (!config.token) {
   console.error('Missing DISCORD_TOKEN. Copy .env.example to .env and add your token.');
@@ -26,12 +35,33 @@ if (!config.token) {
     partials: [Partials.Channel],
   });
   const users = new UserService(database);
+  const audit = new AuditService(database);
+  const progression = new CreatureProgressionService({ database, userService: users });
   const assets = new AssetService(path.join(path.resolve(currentDirectory, '..'), 'assets'));
-  const quests = new QuestService(users);
-  const breeding = new BreedingService({ database, config, userService: users, questService: quests });
-  const spawns = new SpawnService({ database, config, assetService: assets, userService: users, questService: quests });
-  const duels = new DuelService({ database, userService: users, questService: quests });
-  const app = { client, config, database, users, assets, quests, breeding, spawns, duels };
+  const quests = new QuestService({ userService: users, progressionService: progression });
+  const worlds = new WorldService({ database, config });
+  const teams = new TeamService({ database, userService: users });
+  const equipment = new EquipmentService({ database, userService: users, progressionService: progression, auditService: audit });
+  const ascension = new AscensionService({ database, userService: users, auditService: audit });
+  const breeding = new BreedingService({
+    database, config, userService: users, questService: quests, progressionService: progression,
+  });
+  const spawns = new SpawnService({
+    database, config, assetService: assets, userService: users, questService: quests, worldService: worlds,
+  });
+  const battles = new BattleService({
+    database, userService: users, teamService: teams, questService: quests,
+    progressionService: progression, auditService: audit,
+  });
+  const trades = new TradeService({ database, userService: users, auditService: audit });
+  const market = new MarketplaceService({ database, userService: users, auditService: audit });
+  const stories = new StoryService({
+    database, userService: users, progressionService: progression, auditService: audit,
+  });
+  const app = {
+    client, config, database, users, assets, audit, progression, quests, worlds,
+    teams, equipment, ascension, breeding, spawns, battles, trades, market, stories,
+  };
 
   await loadCommands(client, path.join(currentDirectory, 'commands'), app);
   await loadEvents(client, path.join(currentDirectory, 'events'));
@@ -52,5 +82,5 @@ if (!config.token) {
   process.once('beforeExit', () => database.flushAll());
 
   await client.login(config.token);
-  healthServer = await startHealthServer({ client, ...config.http });
+  healthServer = await startHealthServer({ client, database, audit, ...config.http });
 }

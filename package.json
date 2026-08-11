@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "discord.js": "^14.19.3",
-    "dotenv": "^16.5.0"
+    "dotenv": "^16.5.0",
+    "sharp": "^0.35.3"
   },
   "license": "CC-BY-NC-SA-4.0"
 }

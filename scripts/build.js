@@ -2,7 +2,9 @@ import { existsSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { FLAMINGOS } from '../src/data/flamingos.js';
+import { BIOMES } from '../src/data/worlds.js';
 import { speciesSlug } from '../src/services/AssetService.js';
 
 async function javascriptFiles(directory) {
@@ -26,11 +28,25 @@ for (const file of files) {
   }
 }
 
+const commandFiles = await javascriptFiles(path.resolve('src', 'commands'));
+for (const file of commandFiles) {
+  const command = (await import(pathToFileURL(file).href)).default;
+  if (!command?.data?.name || typeof command.execute !== 'function') {
+    console.error(`Build failed: invalid command module ${path.relative(process.cwd(), file)}`);
+    process.exit(1);
+  }
+  command.data.toJSON();
+}
+
 const missingAssets = FLAMINGOS
   .map((species) => path.resolve('assets', 'hathors', `${speciesSlug(species.name)}.png`))
   .filter((file) => !existsSync(file));
 if (!existsSync(path.resolve('assets', 'daycare', 'background.png'))) {
   missingAssets.push(path.resolve('assets', 'daycare', 'background.png'));
+}
+for (const biomeId of Object.keys(BIOMES)) {
+  const file = path.resolve('assets', 'biomes', `${biomeId}.png`);
+  if (!existsSync(file)) missingAssets.push(file);
 }
 if (missingAssets.length) {
   console.error(`Build failed: ${missingAssets.length} required static asset(s) are missing:`);
@@ -38,4 +54,4 @@ if (missingAssets.length) {
   process.exit(1);
 }
 
-console.log(`[build] Validated ${files.length} JavaScript files and ${FLAMINGOS.length + 1} static game assets.`);
+console.log(`[build] Validated ${files.length} JavaScript files, ${commandFiles.length} slash schemas, and ${FLAMINGOS.length + Object.keys(BIOMES).length + 1} static game assets.`);

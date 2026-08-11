@@ -10,6 +10,7 @@ export function normalizeGuild(value, id, defaultChannelIds = []) {
       count: Number(value?.activity?.count) || 0,
       target: Number(value?.activity?.target) || null,
     },
+    world: value?.world && typeof value.world === 'object' ? { ...value.world } : null,
     createdAt: value?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

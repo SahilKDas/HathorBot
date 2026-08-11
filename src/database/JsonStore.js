@@ -66,6 +66,10 @@ export class JsonStore {
     return Object.entries(this.document.records).map(([id, value]) => [id, clone(value)]);
   }
 
+  snapshot() {
+    return clone(this.document);
+  }
+
   async set(id, value, { flush = false } = {}) {
     return this.update(id, () => value, { flush });
   }

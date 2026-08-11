@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HathorBot Developer Console</title>
+  <link rel="stylesheet" href="/dev/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">H</span><div><strong>HathorBot</strong><small>Developer Console</small></div></div>
+      <nav id="tabs" aria-label="Data views">
+        <button class="tab active" data-view="users"><span>◉</span> Trainers</button>
+        <button class="tab" data-view="creatures"><span>◆</span> Hathors</button>
+        <button class="tab" data-view="spawns"><span>✦</span> World & Spawns</button>
+        <button class="tab" data-view="economy"><span>⌁</span> Economy</button>
+        <button class="tab" data-view="audit"><span>≡</span> Audit Log</button>
+        <button class="tab" data-view="stories"><span>S</span> Storylines</button>
+      </nav>
+      <div class="local-badge"><span></span> Loopback only</div>
+    </aside>
+    <main>
+      <header>
+        <div><p class="eyebrow">LIVE JSON CONTROL PLANE</p><h1 id="view-title">Trainers</h1><p id="view-subtitle">Browse and safely edit trainer progression.</p></div>
+        <div class="header-actions"><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search records"></label><button id="grant">Spawn cheated Hathor</button><button id="refresh" class="primary">Refresh</button></div>
+      </header>
+      <section id="metrics" class="metrics" aria-label="Database metrics"></section>
+      <section class="panel">
+        <div class="panel-head"><div><h2 id="panel-title">Trainer records</h2><p id="record-count">Loading…</p></div><span id="last-updated" class="timestamp"></span></div>
+        <div id="content" class="content"><div class="loading">Reading local stores…</div></div>
+      </section>
+    </main>
+  </div>
+  <dialog id="editor"><form method="dialog"><div class="dialog-head"><div><p class="eyebrow">SAFE RECORD EDITOR</p><h2 id="editor-title">Edit record</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div><div id="editor-fields" class="form-grid"></div><p id="editor-error" class="error" role="alert"></p><div class="dialog-actions"><button value="cancel">Cancel</button><button id="save" class="primary" value="default">Save changes</button></div></form></dialog>
+  <div id="toast" role="status"></div>
+  <script type="module" src="/dev/app.js"></script>
+</body>
+</html>

@@ -1,11 +1,14 @@
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { ITEMS } from '../data/items.js';
+import { MAX_CREATURE_LEVEL } from '../services/CreatureFactory.js';
+import { xpForNextCreatureLevel } from '../services/CreatureProgressionService.js';
 
 const rarityRank = { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5, Mythic: 6 };
 
 export default {
   data: new SlashCommandBuilder()
     .setName('box')
-    .setDescription('View your caught Flamingos')
+    .setDescription('View your caught Hathors')
     .addStringOption((option) => option.setName('sort').setDescription('Sort order').addChoices(
       { name: 'IV (highest)', value: 'iv' }, { name: 'Rarity', value: 'rarity' }, { name: 'Level', value: 'level' },
     ))
@@ -26,14 +29,16 @@ export default {
     const shown = creatures.slice((safePage - 1) * 10, safePage * 10);
     const lines = shown.map((creature, index) => {
       const number = (safePage - 1) * 10 + index + 1;
-      const forms = `${creature.shiny ? '✨' : ''}${creature.gigantamax ? '🏔️' : ''}`;
-      return `**${number}. ${forms}${creature.species}** — Lv.${creature.level} · ${creature.type} · ${creature.rarity} · ${creature.ivPercentage}% IV · \`${creature.id.slice(0, 8)}\``;
+      const forms = [creature.shiny && '✨', creature.gigantamax && '🏔️', creature.ascended && '🌅'].filter(Boolean).join('');
+      const equipment = Object.values(creature.equipment ?? {}).filter(Boolean).map((id) => ITEMS[id]?.name ?? id).join(' + ');
+      const xp = creature.level >= MAX_CREATURE_LEVEL ? 'MAX' : `${creature.xp ?? 0}/${xpForNextCreatureLevel(creature.level)} XP`;
+      return `**${number}. ${forms}${creature.species}** — Lv.${creature.level} · ${creature.type} · ${creature.rarity} · ${creature.ivPercentage}% IV\n${xp}${equipment ? ` · Gear: ${equipment}` : ''} · \`${creature.id.slice(0, 8)}\``;
     });
     const embed = new EmbedBuilder()
       .setColor(0xff69b4)
-      .setTitle(`${ctx.user.username}’s Flamingo Box`)
-      .setDescription(lines.join('\n') || 'Your flock is empty. Watch for a wild spawn!')
-      .setFooter({ text: `${creatures.length} Flamingo(s) · Page ${safePage}/${totalPages} · Sorted by ${sort}` });
+      .setTitle(`${ctx.user.username}’s Hathor Box`)
+      .setDescription(lines.join('\n\n') || 'Your flock is empty. Watch for a wild spawn!')
+      .setFooter({ text: `${creatures.length} Hathor(s) · Page ${safePage}/${totalPages} · Sorted by ${sort}` });
     return ctx.reply({ embeds: [embed] });
   },
 };

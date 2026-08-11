@@ -1,21 +1,28 @@
 import { randomUUID } from 'node:crypto';
 import { FLAMINGOS, NATURES, RARITIES } from '../data/flamingos.js';
+import { equippedStatMultiplier } from '../data/items.js';
 import { chance, clamp, int, pick, weightedPick } from '../utils/random.js';
 
 const STAT_NAMES = ['hp', 'attack', 'defense', 'speed'];
 export const IV_CAP = 10;
 export const MAX_CREATURE_LEVEL = 1024;
 
-function rollSpecies() {
-  const rarity = weightedPick(Object.entries(RARITIES), ([, details]) => details.weight)[0];
-  return pick(FLAMINGOS.filter((species) => species.rarity === rarity));
+function rollSpecies({ typeWeights = {}, rarityWeights = {} } = {}) {
+  const rarity = weightedPick(
+    Object.entries(RARITIES),
+    ([name, details]) => details.weight * Number(rarityWeights[name] ?? 1),
+  )[0];
+  return weightedPick(
+    FLAMINGOS.filter((species) => species.rarity === rarity),
+    (species) => Number(typeWeights[species.type] ?? 1),
+  );
 }
 
-function calculateStats(base, ivs, level, multiplier) {
+function calculateStats(base, ivs, level, multiplier, equipment = {}) {
   return Object.fromEntries(STAT_NAMES.map((stat) => {
     const hpBonus = stat === 'hp' ? level + 10 : 5;
     const rawStat = (((((2 * base[stat] + ivs[stat]) * level) / 100) + hpBonus) * multiplier);
-    return [stat, Math.floor(rawStat)];
+    return [stat, Math.floor(rawStat * equippedStatMultiplier(equipment, stat))];
   }));
 }
 
@@ -31,7 +38,8 @@ function buildCreature(species, { ivs, shiny, gigantamax, level = 1, origin = 'w
   const isShiny = shiny ?? chance(1, 512);
   const isGigantamax = gigantamax ?? chance(1, 1000);
   const formMultiplier = isGigantamax ? 1.18 : 1;
-  const stats = calculateStats(species.base, rolledIvs, cappedLevel, RARITIES[rarity].multiplier * formMultiplier);
+  const equipment = { charm: null, anklet: null };
+  const stats = calculateStats(species.base, rolledIvs, cappedLevel, RARITIES[rarity].multiplier * formMultiplier, equipment);
 
   return {
     id: randomUUID(),
@@ -46,6 +54,8 @@ function buildCreature(species, { ivs, shiny, gigantamax, level = 1, origin = 'w
     gender: pick(['Female', 'Male', 'Genderless']),
     shiny: isShiny,
     gigantamax: isGigantamax,
+    ascended: false,
+    equipment,
     ivs: rolledIvs,
     ivPercentage: ivPercentage(rolledIvs),
     stats,
@@ -57,8 +67,14 @@ function buildCreature(species, { ivs, shiny, gigantamax, level = 1, origin = 'w
   };
 }
 
-export function generateWildCreature() {
-  return buildCreature(rollSpecies());
+export function generateWildCreature(options = {}) {
+  return buildCreature(rollSpecies(options));
+}
+
+export function generateCreatureForSpecies(speciesName, options = {}) {
+  const normalized = String(speciesName ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const species = FLAMINGOS.find((entry) => entry.name.toLowerCase().replace(/[^a-z0-9]/g, '') === normalized);
+  return species ? buildCreature(species, options) : null;
 }
 
 export function breedCreature(parentA, parentB) {
@@ -87,12 +103,16 @@ export function recalculateCreature(creature) {
   const species = FLAMINGOS.find((entry) => entry.name === creature.species);
   if (!species) return creature;
   creature.level = clamp(Math.trunc(creature.level), 1, MAX_CREATURE_LEVEL);
+  creature.xp = Math.max(0, Math.trunc(Number(creature.xp) || 0));
+  creature.equipment = { charm: null, anklet: null, ...(creature.equipment ?? {}) };
+  creature.ascended = Boolean(creature.ascended);
   creature.ivPercentage = ivPercentage(creature.ivs);
   creature.stats = calculateStats(
     species.base,
     creature.ivs,
     creature.level,
-    RARITIES[creature.rarity].multiplier * (creature.gigantamax ? 1.18 : 1),
+    RARITIES[creature.rarity].multiplier * (creature.gigantamax ? 1.18 : 1) * (creature.ascended ? 1.12 : 1),
+    creature.equipment,
   );
   return creature;
 }

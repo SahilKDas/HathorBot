@@ -9,12 +9,13 @@ import { makeHint, normalizeName } from '../utils/text.js';
 const SPAWN_LIFETIME_MS = 15 * 60 * 1000;
 
 export class SpawnService {
-  constructor({ database, config, assetService, userService, questService }) {
+  constructor({ database, config, assetService, userService, questService, worldService }) {
     this.database = database;
     this.config = config;
     this.assets = assetService;
     this.users = userService;
     this.quests = questService;
+    this.worlds = worldService;
     this.channelLocks = new Set();
   }
 
@@ -49,8 +50,11 @@ export class SpawnService {
       const existing = this.database.spawns.get(key);
       if (existing?.status === 'active' && Date.parse(existing.expiresAt) > Date.now()) return existing;
 
-      const creature = generateWildCreature();
+      const world = await this.worlds.current(channel.guild.id);
+      const creature = generateWildCreature({ typeWeights: world.typeWeights, rarityWeights: world.rarityWeights });
       const creatureAsset = this.assets.creature(creature);
+      const sceneAsset = await this.assets.spawnScene?.(creature, world.biomeId) ?? null;
+      const displayAsset = sceneAsset ?? creatureAsset;
       creature.imageAsset = creatureAsset ? `hathors/${creature.species.toLowerCase()}.png` : null;
 
       const spawn = createSpawn({
@@ -73,10 +77,14 @@ export class SpawnService {
         ].join('\n'))
         .setFooter({ text: 'It will wander away in 15 minutes.' })
         .setTimestamp();
-      if (creatureAsset) embed.setImage(creatureAsset.attachmentUrl);
+      if (displayAsset) embed.setImage(displayAsset.attachmentUrl);
       else embed.addFields({ name: 'Image unavailable', value: 'This species asset is missing, but the Flamingo can still be caught.' });
+      embed.addFields({
+        name: 'World conditions',
+        value: `**Biome:** ${world.biome.emoji} ${world.biome.name}\n**Rain environment:** ${world.environment.emoji} ${world.environment.name}`,
+      });
 
-      await channel.send({ embeds: [embed], files: creatureAsset ? [creatureAsset.attachment] : [] });
+      await channel.send({ embeds: [embed], files: displayAsset ? [displayAsset.attachment] : [] });
       return spawn;
     } finally {
       this.channelLocks.delete(key);

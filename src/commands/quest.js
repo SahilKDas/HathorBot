@@ -15,12 +15,16 @@ export default {
     if (action === 'claim') {
       const result = await app.quests.claim(ctx.userId);
       if (!result.ok) return ctx.reply({ content: result.reason, ephemeral: true });
-      return ctx.reply(`🎁 Quest claimed: **${result.quest.rewardCoins} Shrimp Coins** and **${result.quest.rewardXp} XP**!`);
+      return ctx.reply(`🎁 Quest claimed: **${result.quest.rewardCoins} Shrimp Coins**, **${result.quest.rewardXp} Trainer XP**, **${result.creatureXp} team XP**, one **Shrimp Treat**, and one **Quest Sigil**!`);
     }
-    const quest = app.users.get(ctx.userId).dailyQuest;
-    const embed = new EmbedBuilder().setColor(0xff69b4).setTitle('Today’s Flamingo Quest')
+    const user = app.users.get(ctx.userId);
+    const quest = user.dailyQuest;
+    const embed = new EmbedBuilder().setColor(0xff69b4).setTitle('Today’s Hathor Quest')
       .setDescription(`**${quest.description}**\n${progressBar(quest.progress, quest.target, 12)} ${quest.progress}/${quest.target}`)
-      .addFields({ name: 'Reward', value: `🦐 ${quest.rewardCoins} Shrimp Coins · ✨ ${quest.rewardXp} XP` })
+      .addFields(
+        { name: 'Reward', value: `🦐 ${quest.rewardCoins} Shrimp Coins · ✨ ${quest.rewardXp} Trainer XP · 125 team XP` },
+        { name: 'Quest unlocks', value: `1 Shrimp Treat · 1 Quest Sigil\nCurrent Sigils: **${user.ascensionSigils}** (3 unlock an Ascension)` },
+      )
       .setFooter({ text: quest.claimed ? 'Reward claimed' : quest.progress >= quest.target ? 'Ready to claim!' : 'Resets daily at 00:00 UTC' });
     return ctx.reply({ embeds: [embed] });
   },
